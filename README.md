@@ -1,4 +1,4 @@
-# sui-move-sources-Annotated-Chinese-translation
+# sui-move-sources-annotated-chinese-translation
 將sui move中，運用的sources內容備註，進行中文翻譯。 
 單純個人英文不好，用於個人學習，若翻譯有不正確的地方歡迎指正。
 
