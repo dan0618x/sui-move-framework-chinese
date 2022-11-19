@@ -161,20 +161,18 @@ module sui::coin {
         balance::destroy_zero(balance)
     }
 
-    // === Registering new coin types and managing the coin supply ===
+    // === 註冊新的硬幣類型和管理硬幣供應 ===
 
-    /// Create a new currency type `T` as and return the `TreasuryCap` for
-    /// `T` to the caller. Can only be called with a `one-time-witness`
-    /// type, ensuring that there's only one `TreasuryCap` per `T`.
+    /// 創建一個新的貨幣類型“T”，並將“T”的“TreasuryCap”返回給調用者。 只能使用 `one-time-witness` 類型調用，確保每個 `T` 只有一個 `TreasuryCap`。
     public fun create_currency<T: drop>(
         witness: T,
         decimals: u8,
         ctx: &mut TxContext
     ): TreasuryCap<T> {
-        // Make sure there's only one instance of the type T
+        // 確保只有一個 T 類型的實例
         assert!(sui::types::is_one_time_witness(&witness), EBadWitness);
 
-        // Emit Currency metadata as an event.
+        // 將貨幣元數據作為事件發出。
         event::emit(CurrencyCreated<T> {
             decimals
         });
@@ -185,8 +183,7 @@ module sui::coin {
         }
     }
 
-    /// Create a coin worth `value`. and increase the total supply
-    /// in `cap` accordingly.
+    /// 創造一個“value”價值的coin。 並相應地增加 `cap` 中的總供應量。
     public fun mint<T>(
         cap: &mut TreasuryCap<T>, value: u64, ctx: &mut TxContext,
     ): Coin<T> {
@@ -196,47 +193,45 @@ module sui::coin {
         }
     }
 
-    /// Mint some amount of T as a `Balance` and increase the total
-    /// supply in `cap` accordingly.
-    /// Aborts if `value` + `cap.total_supply` >= U64_MAX
+    /// 鑄造一些 T 作為“balance”，並相應地增加 `cap`中的總供應量。
+    /// 如果 `value` + `cap.total_supply` >= U64_MAX 則中止。
     public fun mint_balance<T>(
         cap: &mut TreasuryCap<T>, value: u64
     ): Balance<T> {
         balance::increase_supply(&mut cap.total_supply, value)
     }
 
-    /// Destroy the coin `c` and decrease the total supply in `cap`
-    /// accordingly.
+    /// 銷毀硬幣“c”並相應地減少“cap”中的總供應量。
     public fun burn<T>(cap: &mut TreasuryCap<T>, c: Coin<T>): u64 {
         let Coin { id, balance } = c;
         object::delete(id);
         balance::decrease_supply(&mut cap.total_supply, balance)
     }
 
-    // === Entrypoints ===
+    // === 入口點 ===
 
-    /// Mint `amount` of `Coin` and send it to `recipient`. Invokes `mint()`.
+    /// 鑄造`Coin`的`amount`並將其發送給`recipient`。 調用`mint()`。
     public entry fun mint_and_transfer<T>(
         c: &mut TreasuryCap<T>, amount: u64, recipient: address, ctx: &mut TxContext
     ) {
         transfer::transfer(mint(c, amount, ctx), recipient)
     }
 
-    /// Burn a Coin and reduce the total_supply. Invokes `burn()`.
+    /// 燒掉一枚硬幣並減少總供應量。 調用`burn()`。
     public entry fun burn_<T>(c: &mut TreasuryCap<T>, coin: Coin<T>) {
         burn(c, coin);
     }
 
-    // === Test-only code ===
+    // === 測試用代碼 ===
 
     #[test_only]
-    /// Mint coins of any type for (obviously!) testing purposes only
+    /// 僅用於（顯然！）測試目的的任何類型的鑄幣
     public fun mint_for_testing<T>(value: u64, ctx: &mut TxContext): Coin<T> {
         Coin { id: object::new(ctx), balance: balance::create_for_testing(value) }
     }
 
     #[test_only]
-    /// Destroy a `Coin` with any value in it for testing purposes.
+    /// 銷毀具有任何價值的“硬幣”以進行測試。
     public fun destroy_for_testing<T>(self: Coin<T>): u64 {
         let Coin { id, balance } = self;
         object::delete(id);
