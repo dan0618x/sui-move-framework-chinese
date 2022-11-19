@@ -41,14 +41,14 @@ module sui::balance {
         Supply { value: 0 }
     }
 
-    /// Increase supply by `value` and create a new `Balance<T>` with this value.
+    /// 通過 `value` 增加供應並使用該值創建一個新的 `Balance<T>`。
     public fun increase_supply<T>(self: &mut Supply<T>, value: u64): Balance<T> {
         assert!(value < (18446744073709551615u64 - self.value), EOverflow);
         self.value = self.value + value;
         Balance { value }
     }
 
-    /// Burn a Balance<T> and decrease Supply<T>.
+    /// 燒掉一個餘額<T>並減少供應量<T>。
     public fun decrease_supply<T>(self: &mut Supply<T>, balance: Balance<T>): u64 {
         let Balance { value } = balance;
         assert!(self.value >= value, EOverflow);
@@ -56,7 +56,7 @@ module sui::balance {
         value
     }
 
-    /// Create a zero `Balance` for type `T`.
+    /// 為類型“T”創建一個零“balance”。
     public fun zero<T>(): Balance<T> {
         Balance { value: 0 }
     }
@@ -66,7 +66,7 @@ module sui::balance {
         ensures result.value == 0;
     }
 
-    /// Join two balances together.
+    /// 將兩個餘額連接在一起。
     public fun join<T>(self: &mut Balance<T>, balance: Balance<T>): u64 {
         let Balance { value } = balance;
         self.value = self.value + value;
@@ -78,7 +78,7 @@ module sui::balance {
         ensures result == self.value;
     }
 
-    /// Split a `Balance` and take a sub balance from it.
+    /// 拆分“balance”並從中獲取子餘額。
     public fun split<T>(self: &mut Balance<T>, value: u64): Balance<T> {
         assert!(self.value >= value, ENotEnough);
         self.value = self.value - value;
@@ -91,7 +91,7 @@ module sui::balance {
         ensures result.value == value;
     }
 
-    /// Destroy a zero `Balance`.
+    /// 銷毀零“balance”。
     public fun destroy_zero<T>(balance: Balance<T>) {
         assert!(balance.value == 0, ENonZero);
         let Balance { value: _ } = balance;
@@ -102,27 +102,27 @@ module sui::balance {
     }
 
     #[test_only]
-    /// Create a `Balance` of any coin for testing purposes.
+    /// 為測試目的，創建任何coin的“Balance”。
     public fun create_for_testing<T>(value: u64): Balance<T> {
         Balance { value }
     }
 
     #[test_only]
-    /// Destroy a `Balance` with any value in it for testing purposes.
+    /// 為測試目的，銷毀其中包含任何值的“Balance”。
     public fun destroy_for_testing<T>(self: Balance<T>): u64 {
         let Balance { value } = self;
         value
     }
 
     #[test_only]
-    /// Destroy a `Supply` with any value in it for testing purposes.
+    /// 為測試目的，銷毀其中包含任何值的 `Supply`。
     public fun destroy_supply_for_testing<T>(self: Supply<T>): u64 {
         let Supply { value } = self;
         value
     }
 
     #[test_only]
-    /// Create a `Supply` of any coin for testing purposes.
+    /// 為測試目的，創建任何coin的“Supply”。
     public fun create_supply_for_testing<T>(value: u64): Supply<T> {
         Supply { value }
     }
