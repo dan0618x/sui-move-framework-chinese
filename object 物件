@@ -14,156 +14,145 @@ module sui::object {
     #[test_only]
     friend sui::test_scenario;
 
-    /// 單例 Sui 系統狀態對象的硬編碼 ID。
+    /// 單例 Sui 系統狀態物件的硬編碼 ID。
     const SUI_SYSTEM_STATE_OBJECT_ID: address = @0x5;
 
-    /// Error from `address_from_bytes` when it is supplied too many or too few bytes.
+    /// 當提供的字節過多或過少時，來自 `address_from_bytes` 的錯誤
     const EAddressParseError: u64 = 0;
 
-    /// An object ID. This is used to reference Sui Objects.
-    /// This is *not* guaranteed to be globally unique--anyone can create an `ID` from a `UID` or
-    /// from an object, and ID's can be freely copied and dropped.
-    /// Here, the values are not globally unique because there can be multiple values of type `ID`
-    /// with the same underlying bytes. For example, `object::id(&obj)` can be called as many times
-    /// as you want for a given `obj`, and each `ID` value will be identical.
+    /// 物件 ID。 這用於引用 Sui 物件。
+    /// *不*保證全局唯一——任何人都可以從“UID”或物件創建“ID”，並且可以自由複制和刪除 ID。
+    /// 在這裡，這些值不是全局唯一的，因為可以有多個具有相同底層字節的“ID”類型的值。
+    /// 例如，對於給定的 `obj`，`object::id(&obj)` 可以被多次調用，並且每個 `ID` 值都是相同的。
     struct ID has copy, drop, store {
-        // We use `address` instead of `vector<u8>` here because `address` has a more
-        // compact serialization. `address` is serialized as a BCS fixed-length sequence,
-        // which saves us the length prefix we would pay for if this were `vector<u8>`.
-        // See https://github.com/diem/bcs#fixed-and-variable-length-sequences.
         bytes: address
+        // 我們在這裡使用 `address` 而不是 `vector<u8>` 因為 `address` 具有更緊湊的序列化。
+        // `address` 被序列化為 BCS 固定長度序列，這為我們節省了如果這是 `vector<u8>` 時我們將支付的長度前綴。
+        // 請參閱 https://github.com/diem/bcs#fixed-and-variable-length-sequences。
     }
 
-    /// Globally unique IDs that define an object's ID in storage. Any Sui Object, that is a struct
-    /// with the `key` ability, must have `id: UID` as its first field.
-    /// These are globaly unique in the sense that no two values of type `UID` are ever equal, in
-    /// other words for any two values `id1: UID` and `id2: UID`, `id1` != `id2`.
-    /// This is a privileged type that can only be derived from a `TxContext`.
-    /// `UID` doesn't have the `drop` ability, so deleting a `UID` requires a call to `delete`.
+    /// 定義存儲中物件 ID 的全局唯一 ID。 任何 Sui 物件，即具有 `key` 能力的結構，必須將 `id: UID` 作為其第一個字段。
+    /// 這些是全局唯一的，因為沒有兩個 `UID` 類型的值永遠相等，換句話說，對於任何兩個值 `id1: UID` 和 `id2: UID`，`id1` != `id2`。
+    /// 這是一種特權類型，只能從 `TxContext` 導出。
+    /// `UID` 沒有 `drop` 能力，因此刪除 `UID` 需要調用 `delete`。
     struct UID has store {
         id: ID,
     }
 
-    // === address ===
+    // === 地址 ===
 
-    /// Convert raw bytes into an address, aborts if supplied too many
-    /// or too few bytes.
+    /// 將原始字節轉換為地址，如果提供的字節過多或過少則中止。
     public native fun address_from_bytes(bytes: vector<u8>): address;
 
     // === id ===
 
-    /// Get the raw bytes of a `ID`
+    /// 獲取“ID”的原始字節
     public fun id_to_bytes(id: &ID): vector<u8> {
         bcs::to_bytes(&id.bytes)
     }
 
-    /// Get the inner bytes of `id` as an address.
+    /// 獲取 `id` 的內部字節作為地址。
     public fun id_to_address(id: &ID): address {
         id.bytes
     }
 
-    /// Make an `ID` from raw bytes.
+    /// 從原始字節製作一個“ID”。
     public fun id_from_bytes(bytes: vector<u8>): ID {
         id_from_address(address_from_bytes(bytes))
     }
 
-    /// Make an `ID` from an address.
+    /// 從地址製作一個“ID”。
     public fun id_from_address(bytes: address): ID {
         ID { bytes }
     }
 
     // === uid ===
 
-    /// Create the `UID` for the singleton `SuiSystemState` object.
-    /// This should only be called once from `sui_system`.
+    /// 為單例 `SuiSystemState` 物件創建 `UID`。
+    /// 這只能從 `sui_system` 調用一次。
     public(friend) fun sui_system_state(): UID {
         UID {
             id: ID { bytes: SUI_SYSTEM_STATE_OBJECT_ID },
         }
     }
 
-    /// Get the inner `ID` of `uid`
+    /// 獲取 `uid` 的內部 `ID`
     public fun uid_as_inner(uid: &UID): &ID {
         &uid.id
     }
 
-    /// Get the raw bytes of a `uid`'s inner `ID`
+    /// 獲取 `uid` 的內部 `ID` 的原始字節
     public fun uid_to_inner(uid: &UID): ID {
         uid.id
     }
 
-    /// Get the raw bytes of a `UID`
+    /// 獲取 `UID` 的原始字節
     public fun uid_to_bytes(uid: &UID): vector<u8> {
         bcs::to_bytes(&uid.id.bytes)
     }
 
-    /// Get the inner bytes of `id` as an address.
+    /// 獲取 `id` 的內部字節作為地址。
     public fun uid_to_address(uid: &UID): address {
         uid.id.bytes
     }
 
-    // === any object ===
+    // === 任何物件 ===
 
-    /// Create a new object. Returns the `UID` that must be stored in a Sui object.
-    /// This is the only way to create `UID`s.
+    /// 創建一個新物件。 返回必須存儲在 Sui 物件中的“UID”。
+    /// 這是創建 `UID` 的唯一方法。
     public fun new(ctx: &mut TxContext): UID {
         UID {
             id: ID { bytes: tx_context::new_object(ctx) },
         }
     }
 
-    /// Delete the object and it's `UID`. This is the only way to eliminate a `UID`.
-    // This exists to inform Sui of object deletions. When an object
-    // gets unpacked, the programmer will have to do something with its
-    // `UID`. The implementation of this function emits a deleted
-    // system event so Sui knows to process the object deletion
+    /// 刪除物件，它是 `UID`。 這是消除“UID”的唯一方法。
+    // 這是為了通知 Sui 物件刪除。 當一個物件被解包時，程序員將不得不對其 `UID` 做一些事情。 該函數的實現會發出一個已刪除的系統事件，以便 Sui 知道處理物件刪除。
     public fun delete(id: UID) {
         let UID { id: ID { bytes } } = id;
         delete_impl(bytes)
     }
 
-    /// Get the underlying `ID` of `obj`
+    /// 獲取`obj`的底層`ID`
     public fun id<T: key>(obj: &T): ID {
         borrow_uid(obj).id
     }
 
-    /// Borrow the underlying `ID` of `obj`
+    /// 借用`obj`的底層`ID`
     public fun borrow_id<T: key>(obj: &T): &ID {
         &borrow_uid(obj).id
     }
 
-    /// Get the raw bytes for the underlying `ID` of `obj`
+    /// 獲取 `obj` 的底層 `ID` 的原始字節
     public fun id_bytes<T: key>(obj: &T): vector<u8> {
         bcs::to_bytes(&borrow_uid(obj).id)
     }
 
-    /// Get the inner bytes for the underlying `ID` of `obj`
+    /// 獲取 `obj` 的底層 `ID` 的內部字節
     public fun id_address<T: key>(obj: &T): address {
         borrow_uid(obj).id.bytes
     }
 
-    /// Get the `UID` for `obj`.
-    /// Safe because Sui has an extra bytecode verifier pass that forces every struct with
-    /// the `key` ability to have a distinguished `UID` field.
-    /// Cannot be made public as the access to `UID` for a given object must be privledged, and
-    /// restrictable in the object's module.
+    /// 獲取 `obj` 的 `UID`。
+    /// 安全，因為 Sui 有一個額外的字節碼驗證程序，它強制每個具有 `key` 能力的結構具有一個可區分的 `UID` 字段。
+    /// 不能公開，因為對給定物件的“UID”的訪問必須是特權的，並且在物件的模塊中是可限制的。
     native fun borrow_uid<T: key>(obj: &T): &UID;
 
-    /// Generate a new UID specifically used for creating a UID from a hash
+    /// 生成專門用於從哈希值創建 UID 的新 UID
     public(friend) fun new_uid_from_hash(bytes: address): UID {
         record_new_uid(bytes);
         UID { id: ID { bytes } }
     }
 
-    // === internal functions ===
+    // === 內部函數 ===
 
-    // helper for delete
+    // 刪除助手
     native fun delete_impl(id: address);
 
-    // marks newly created UIDs from hash
+    // 從哈希值標記新創建 UID
     native fun record_new_uid(id: address);
 
-    // Cost calibration functions
+    // 校準功能
     #[test_only]
     public fun calibrate_address_from_bytes(bytes: vector<u8>) {
         address_from_bytes(bytes);
@@ -182,7 +171,7 @@ module sui::object {
         let _ = obj;
     }
 
-    // TBD
+    // 待定
 
     // #[test_only]
     // public fun calibrate_delete_impl(id: UID) {
