@@ -1,7 +1,6 @@
 # sui-move-framework-annotated-chinese-translation
-將sui move中，運用的framework內容備註進行中文翻譯。 
-單純個人英文不好，用於個人學習，若翻譯有不正確的地方歡迎指正。
+將 Sui Move 使用的 framework 原始碼加上繁體中文註解，方便學習與查閱。
+若註解有不正確的地方，歡迎提出指正。
 
-Remark the content of the framework used in sui move and translate them into Chinese. 
-The English is not good for mere personal use, it is used for personal study. 
-If there is any inaccuracies in the translation, please correct me.
+Chinese annotations for the Sui Move framework source code, written for study and reference.
+Corrections are welcome if you find any inaccuracies.
